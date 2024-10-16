@@ -8,11 +8,13 @@ Requires the following libraries:  requests, pandas, openpyxl
 install using:  pip install requests pandas openpyxl
 run using:  python3 get_weather.py
 
-You can set your own latitude and longitude (find using the URL from Google Maps).
+You can set your own latitude and longitude using Google Maps.
+Find your home, click it, then grab the lattitude and longitude shown in the URL:
+(this part of the URL --> @34.9717465,138.378599)
 
-You can change the output file by editing output filename.
+You can change the output file by editing output filename near the bottom of the program.
 
-UNITS USED
+UNITS USED:
    temperature    = °C
    feels_like     = °C
    humidity       = %
