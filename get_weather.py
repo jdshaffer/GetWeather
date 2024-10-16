@@ -8,9 +8,8 @@
 # run using:  python3 get_weather.py
 #
 # You can set your own latitude and longitude (find using the URL from Google Maps)
-# Edit lines 35 & 36 with your location
 #
-# You can change the output file by editing output filename on line 65
+# You can change the output file by editing output filename
 #
 # UNITS USED
 #    temperature    = °C
@@ -28,6 +27,7 @@ import requests
 import pandas as pd
 from datetime import datetime
 import os
+from openpyxl import load_workbook
 
 # Currently using the OpenMeteo JMA API
 # https://open-meteo.com/en/docs/jma-api
@@ -60,6 +60,24 @@ def get_weather_data():
         return None
 
 
+# Function to tidy up the Excel file and make it easier to read
+def adjust_column_width(file_name):
+    workbook = load_workbook(file_name)
+    worksheet = workbook.active
+    for column_cells in worksheet.columns:
+        max_length = 0
+        column = column_cells[0].column_letter  # Get the column name (e.g., A, B, C)
+        for cell in column_cells:
+            try:
+                if cell.value:
+                    max_length = max(max_length, len(str(cell.value)))
+            except:
+                pass
+        adjusted_width = max_length + 2  # Add some extra padding for readability
+        worksheet.column_dimensions[column].width = adjusted_width
+    workbook.save(file_name)
+
+
 # Function to create or append to the Excel file
 def save_weather_data(weather_data):
     file_name = 'shizuoka_wx_data.xlsx'
@@ -73,6 +91,9 @@ def save_weather_data(weather_data):
         df = pd.read_excel(file_name)
         df = df._append(weather_data, ignore_index=True)
         df.to_excel(file_name, index=False)
+
+    # Adjust the column width after saving
+    adjust_column_width(file_name)
 
 
 # Main function to get weather data and save it
