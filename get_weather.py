@@ -3,12 +3,14 @@
 # Initial program created by ChatGPT, then heavily edited and modified by Jds
 # 2024-10-16
 #
-# requires the following libraries:  requests, pandas, openpyxl
-# install using:  pip install requests pandas openpyxl
-# run using:  python3 get_weather.py
+# Requires the following libraries:  requests, pandas, openpyxl
+# Install using:  pip install requests pandas openpyxl
+# Run using:  python3 get_weather.py
+#
+# If you are not in Japan, you'll want to go to open-meteo.com and select 
+# a different source as this one uses a Japanese source for the weather data.
 #
 # You can set your own latitude and longitude (find using the URL from Google Maps)
-#
 # You can change the output file by editing output filename
 #
 # UNITS USED
@@ -28,6 +30,7 @@ import pandas as pd
 from datetime import datetime
 import os
 from openpyxl import load_workbook
+from openpyxl.styles import Alignment
 
 # Currently using the OpenMeteo JMA API
 # https://open-meteo.com/en/docs/jma-api
@@ -60,21 +63,28 @@ def get_weather_data():
         return None
 
 
-# Function to tidy up the Excel file and make it easier to read
-def adjust_column_width(file_name):
+# Function to adjust column width and center cell content
+def adjust_column_width_and_center(file_name):
     workbook = load_workbook(file_name)
     worksheet = workbook.active
-    for column_cells in worksheet.columns:
+
+    # Iterate over all rows and columns to apply alignment and adjust column width
+    for col in worksheet.columns:
         max_length = 0
-        column = column_cells[0].column_letter  # Get the column name (e.g., A, B, C)
-        for cell in column_cells:
-            try:
-                if cell.value:
-                    max_length = max(max_length, len(str(cell.value)))
-            except:
-                pass
-        adjusted_width = max_length + 2  # Add some extra padding for readability
+        column = col[0].column_letter  # Get the column letter (e.g., A, B, C, ...)
+        
+        for cell in col:
+            # Apply center alignment to each cell
+            cell.alignment = Alignment(horizontal='center', vertical='center')
+            
+            # Calculate maximum length of data in the column
+            if cell.value:
+                max_length = max(max_length, len(str(cell.value)))
+        
+        # Adjust column width based on the longest value
+        adjusted_width = max_length + 2  # Add some padding for readability
         worksheet.column_dimensions[column].width = adjusted_width
+
     workbook.save(file_name)
 
 
@@ -92,8 +102,8 @@ def save_weather_data(weather_data):
         df = df._append(weather_data, ignore_index=True)
         df.to_excel(file_name, index=False)
 
-    # Adjust the column width after saving
-    adjust_column_width(file_name)
+    # Adjust the column width and center the content
+    adjust_column_width_and_center(file_name)
 
 
 # Main function to get weather data and save it
