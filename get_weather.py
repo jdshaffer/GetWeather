@@ -1,10 +1,16 @@
 ################################################################################
 # Python3 script to grab my local weather and append it to an XLS file
-# Created by Jds with help from ChatGPT, then changed to use better API
+# Initial program created by ChatGPT, then heavily edited and modified by Jds
 # 2024-10-16
 #
-# run:    python3 get_weather.py
-# output: shizuoka_wx_data.xlsx
+# requires the following libraries:  requests, pandas, openpyxl
+# install using:  pip install requests pandas openpyxl
+# run using:  python3 get_weather.py
+#
+# You can set your own latitude and longitude (find using the URL from Google Maps)
+# Edit lines 35 & 36 with your location
+#
+# You can change the output file by editing output filename on line 65
 #
 # UNITS USED
 #    temperature    = °C
@@ -25,9 +31,9 @@ import os
 
 # Currently using the OpenMeteo JMA API
 # https://open-meteo.com/en/docs/jma-api
-# The lat and lon are for Shizuoka, Japan
-LATITUDE = '34.975'
-LONGITUDE = '138.4088016'
+# The lat and lon are for Shizuoka Station, Shizuoka, Japan
+LATITUDE = '34.971'
+LONGITUDE = '138.378599'
 URL = f'https://api.open-meteo.com/v1/forecast?latitude={LATITUDE}&longitude={LONGITUDE}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,cloud_cover,surface_pressure,wind_speed_10m,wind_direction_10m&timezone=Asia%2FTokyo&models=jma_seamless'
 
 
