@@ -1,4 +1,4 @@
-# GrabWeatherHourly
+# GetWeather
 
 A simple python3 script to grab local weather data and append it to an XLSX file
 I have this running with an hourly cron job. Very fun!
