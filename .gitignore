@@ -5,3 +5,6 @@ grab-weather-script.sh
 # Ignore the output files
 shizuoka_wx_data_(old_format).xlsx
 shizuoka_wx_data.xlsx
+
+# Ignore OSX files
+.DS_Store
