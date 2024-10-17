@@ -34,9 +34,9 @@ from openpyxl.styles import Alignment
 
 # Currently using the OpenMeteo JMA API
 # https://open-meteo.com/en/docs/jma-api
-# The lat and lon are for Shizuoka Station, Shizuoka, Japan
-LATITUDE = '34.971'
-LONGITUDE = '138.378599'
+# The lat and lon are for Shizuoka, Japan
+LATITUDE = '34.975'
+LONGITUDE = '138.4088016'
 URL = f'https://api.open-meteo.com/v1/forecast?latitude={LATITUDE}&longitude={LONGITUDE}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,cloud_cover,surface_pressure,wind_speed_10m,wind_direction_10m&timezone=Asia%2FTokyo&models=jma_seamless'
 
 

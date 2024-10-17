@@ -1,0 +1,7 @@
+# Ignore my helper script for the MacMini
+grab-weather-script.sh
+
+
+# Ignore the output files
+shizuoka_wx_data_(old_format).xlsx
+shizuoka_wx_data.xlsx
