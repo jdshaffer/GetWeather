@@ -14,9 +14,9 @@ You can set your own latitude and longitude using Google Maps. Find your home, c
 
 You can change the output file by editing output filename near the bottom of the program.
 
-.
+---
 
-##**UNITS USED**
+**UNITS USED**
 
 *    temperature    = °C
 *    feels_like     = °C
