@@ -2,8 +2,9 @@
 grab-weather-script.sh
 
 
-# Ignore my personal output files
+# Ignore my output files and personal note
 shizuoka_wx_data.xlsx
+Jds_Note.txt
 
 
 # Ignore OSX files
