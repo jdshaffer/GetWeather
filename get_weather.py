@@ -1,6 +1,6 @@
 ################################################################################
 # Python3 script to grab my local weather and append it to an XLS file
-# Initial program created by ChatGPT, then heavily edited and modified by Jds
+# Jeffrey D. Shaffer
 # 2024-10-16
 #
 # Requires the following libraries:  requests, pandas, openpyxl
