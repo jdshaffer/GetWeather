@@ -1,7 +1,7 @@
 ################################################################################
 # Python3 script to grab my local weather and append it to an XLS file
 # Jeffrey D. Shaffer
-# 2024-10-16
+# 2024-10-20
 #
 # Requires the following libraries:  requests, pandas, openpyxl
 # Install using:  pip install requests pandas openpyxl
@@ -10,8 +10,12 @@
 # If you are not in Japan, you'll want to go to open-meteo.com and select 
 # a different source as this one uses a Japanese source for the weather data.
 #
-# You can set your own latitude and longitude (find using the URL from Google Maps)
-# You can change the output file by editing output filename
+# You can set your own latitude and longitude (find using the URL from Google Maps).
+# You can change the output file by editing output filename.
+#
+# To record the wind direction in degrees, instead of compass directions, 
+# comment out the second wind_dir (with the convert_wind_to_compass function)
+# and uncomment the first wind_dir (with no convert function).
 #
 # UNITS USED
 #    temperature    = °C
@@ -19,7 +23,7 @@
 #    humidity       = %
 #    pressure       = hPa
 #    windspeed      = mps (converted from kph)
-#    wind_dir       = °
+#    wind_dir       = (compass directions by default, degrees by choice)
 #    cloud_cover    = %
 #    precipitation  = mm
 #
@@ -40,6 +44,46 @@ LONGITUDE = '138.4088016'
 URL = f'https://api.open-meteo.com/v1/forecast?latitude={LATITUDE}&longitude={LONGITUDE}&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,cloud_cover,surface_pressure,wind_speed_10m,wind_direction_10m&timezone=Asia%2FTokyo&models=jma_seamless'
 
 
+# Function to convert wind direction (degrees) to compass directions 
+# (I find this much easier to understand that looking at degrees)
+def convert_wind_to_compass(wind_dir):
+    if wind_dir >= 0 and wind_dir < 22.5:
+    	wind_dir_compass = "N"
+    if wind_dir >= 22.5 and wind_dir < 45:
+    	wind_dir_compass = "NNE"
+    if wind_dir >= 45 and wind_dir < 67.5:
+    	wind_dir_compass = "NE"
+    if wind_dir >= 67.5 and wind_dir < 90:
+    	wind_dir_compass = "ENE"
+    if wind_dir >= 90 and wind_dir < 112.5:
+    	wind_dir_compass = "E"
+    if wind_dir >= 112.5 and wind_dir < 135:
+    	wind_dir_compass = "ESE"
+    if wind_dir >= 135 and wind_dir < 157.5:
+    	wind_dir_compass = "SE"
+    if wind_dir >= 157.5 and wind_dir < 180:
+    	wind_dir_compass = "SSE"
+    if wind_dir >= 180 and wind_dir < 202.5:
+    	wind_dir_compass = "S"
+    if wind_dir >= 202.5 and wind_dir < 225:
+    	wind_dir_compass = "SSW"
+    if wind_dir >= 225 and wind_dir < 247.5:
+    	wind_dir_compass = "SW"
+    if wind_dir >= 247.5 and wind_dir < 270:
+    	wind_dir_compass = "WSW"
+    if wind_dir >= 270 and wind_dir < 292.5:
+    	wind_dir_compass = "W"
+    if wind_dir >= 292.5 and wind_dir < 315:
+    	wind_dir_compass = "WNW"
+    if wind_dir >= 315 and wind_dir < 337.5:
+    	wind_dir_compass = "NW"
+    if wind_dir >= 337.5 and wind_dir < 360:
+    	wind_dir_compass = "NNW"
+    if wind_dir == 360:
+    	wind_dir_compass = "N"
+    return wind_dir_compass
+
+
 # Function to get the weather data
 def get_weather_data():
     response = requests.get(URL)
@@ -53,7 +97,8 @@ def get_weather_data():
             'humidity': data['current']['relative_humidity_2m'],
             'pressure': data['current']['surface_pressure'],
             'wind_speed': float(f"{data['current']['wind_speed_10m']/3.6:.2f}"),
-            'wind_dir': data['current']['wind_direction_10m'],
+#            'wind_dir': data['current']['wind_direction_10m'],                           # use this one for degrees
+            'wind_dir': convert_wind_to_compass(data['current']['wind_direction_10m']),   # use this one for compass directions
             'cloud_cover': data['current']['cloud_cover'],
             'precipitation': data['current']['precipitation']
         }
