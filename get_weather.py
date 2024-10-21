@@ -1,5 +1,5 @@
 ################################################################################
-# Python3 script to grab my local weather and append it to an XLS file
+# Grabs the local weather data and appends it to an XLS file  (Final Version)
 # Jeffrey D. Shaffer
 # 2024-10-20
 #
