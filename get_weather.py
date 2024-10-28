@@ -1,6 +1,6 @@
 ################################################################################
 # Grabs the local weather data and appends it to an XLS file  (Final Version)
-# Jeffrey D. Shaffer
+# Code developed by Jeffrey D. Shaffer with assistance from Claude Sonnet
 # 2024-10-20
 #
 # Requires the following libraries:  requests, pandas, openpyxl
