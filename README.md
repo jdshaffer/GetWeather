@@ -14,6 +14,8 @@ You can set your own latitude and longitude using Google Maps. Find your home, c
 
 You can change the output file by editing output filename near the bottom of the program.
 
+_Version 2 now calculates the AQI and adds it after the weather data in the XLSX file._
+
 ---
 
 **UNITS USED**
