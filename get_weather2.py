@@ -1,12 +1,12 @@
 ################################################################################
-# Get Weather 2 -- Version 2.0
+# Get Weather -- Version 2.1
 # Jeffrey D. Shaffer and Google Gemini
-# 2025-06-08
+# 2025-06-11
 #
 ################################################################################
 # Grabs the local weather data and air quality data, 
 # calculates the AQI (based on PM 2.5, PM 10.0, CO, NO2, SO2, and Ozone data),
-# and appends the weather data and AQI to an XLSX file.
+# and appends the weather data, AQI, and air particulare data to an XLSX file.
 #
 ################################################################################
 # Requires the following libraries:  requests, pandas, openpyxl
@@ -32,6 +32,12 @@
 #    wind_dir       = (compass directions by default, degrees by choice)
 #    cloud_cover    = %
 #    precipitation  = mm
+#    pm 2.5         = μg/m3 (micrograms per cubic meter)
+#    pm 10          = μg/m3
+#    co             = μg/m3
+#    no2            = μg/m3
+#    so2            = μg/m3
+#    o3 (ozone)     = μg/m3
 #
 ################################################################################
 
@@ -52,7 +58,10 @@ WEATHER_API_URL = f'https://api.open-meteo.com/v1/forecast?latitude={LATITUDE}&l
 # --- Configuration for Air Quality Data ---
 AQ_API_URL = f'https://air-quality-api.open-meteo.com/v1/air-quality?latitude={LATITUDE}&longitude={LONGITUDE}&current=pm2_5,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone,pm10'
 
-OUTPUT_FILENAME = 'shizuoka_wx_data.xlsx'
+OUTPUT_FILENAME = 'wx_data.xlsx'
+
+# Change this to "False" to only record the AQI and not the individual air particulates
+RECORD_AIR_PARTICULATES = True
 
 # Function to convert wind direction (degrees) to compass directions
 def convert_wind_to_compass(wind_dir):
@@ -97,19 +106,6 @@ def convert_wind_to_compass(wind_dir):
 # --- AQI Calculation Function ---
 def calculate_aqi_from_data(json_data):
     current = json_data.get("current", {})
-
-    pm2_5_ugm3 = current.get("pm2_5")
-    carbon_monoxide_ugm3 = current.get("carbon_monoxide")
-    nitrogen_dioxide_ugm3 = current.get("nitrogen_dioxide")
-    sulphur_dioxide_ugm3 = current.get("sulphur_dioxide")
-    ozone_ugm3 = current.get("ozone")
-    pm10_ugm3 = current.get("pm10")
-
-    # Conversion Factors (approximate, at 25°C and 1 atm)
-    # CO: 1 μg/m³ = 0.873 ppb (1 mg/m³ = 0.873 ppm)
-    # NO2: 1 μg/m³ = 0.532 ppb
-    # SO2: 1 μg/m³ = 0.375 ppb
-    # Ozone: 1 μg/m³ = 0.5 ppb
 
     # US EPA AQI Breakpoints (Concentration Hi/Lo and AQI Hi/Lo)
     aqi_breakpoints = {
@@ -173,22 +169,22 @@ def calculate_aqi_from_data(json_data):
 
     sub_aqis = []
 
-    if pm2_5_ugm3 is not None:
-        sub_aqis.append(calculate_sub_aqi(pm2_5_ugm3, "pm2_5"))
-    if pm10_ugm3 is not None:
-        sub_aqis.append(calculate_sub_aqi(pm10_ugm3, "pm10"))
-    if carbon_monoxide_ugm3 is not None:
-        co_ppm = carbon_monoxide_ugm3 * (0.873 / 1000)
-        sub_aqis.append(calculate_sub_aqi(co_ppm, "carbon_monoxide"))
-    if nitrogen_dioxide_ugm3 is not None:
-        no2_ppb = nitrogen_dioxide_ugm3 * 0.532
-        sub_aqis.append(calculate_sub_aqi(no2_ppb, "nitrogen_dioxide"))
-    if sulphur_dioxide_ugm3 is not None:
-        so2_ppb = sulphur_dioxide_ugm3 * 0.375
-        sub_aqis.append(calculate_sub_aqi(so2_ppb, "sulphur_dioxide"))
-    if ozone_ugm3 is not None:
-        o3_ppb = ozone_ugm3 * 0.5
-        sub_aqis.append(calculate_sub_aqi(o3_ppb, "ozone"))
+    # Define pollutants and their conversion factors/types for unified processing
+    pollutants_info = {
+        "pm2_5": {"key": "pm2_5", "type": "pm2_5", "factor": 1},
+        "pm10": {"key": "pm10", "type": "pm10", "factor": 1},
+        "carbon_monoxide": {"key": "carbon_monoxide", "type": "carbon_monoxide", "factor": (0.873 / 1000)}, # to ppm
+        "nitrogen_dioxide": {"key": "nitrogen_dioxide", "type": "nitrogen_dioxide", "factor": 0.532}, # to ppb
+        "sulphur_dioxide": {"key": "sulphur_dioxide", "type": "sulphur_dioxide", "factor": 0.375}, # to ppb
+        "ozone": {"key": "ozone", "type": "ozone", "factor": 0.5}, # to ppb
+    }
+
+    # Loop through pollutants, get their values, apply conversions, and calculate sub-AQI
+    for pollutant_name, info in pollutants_info.items():
+        value = current.get(info["key"])
+        if value is not None:
+            processed_value = value * info["factor"]
+            sub_aqis.append(calculate_sub_aqi(processed_value, info["type"]))
 
     final_aqi = max(sub_aqis) if sub_aqis else 0
     category = get_aqi_category(final_aqi)
@@ -230,26 +226,57 @@ def get_combined_data():
         wind_direction_deg = current_weather['wind_direction_10m']
         cloud_cover_percent = current_weather['cloud_cover']
         precipitation_mm = current_weather['precipitation']
-
-        # Calculate AQI
+        
+        # AQI calculation (already handled by calculate_aqi_from_data)
         aqi_value, aqi_category = calculate_aqi_from_data(aq_data)
 
+        # Extract air quality parameters directly from aq_data for combined_record
+        air_particulates = aq_data['current']
+        pm2_5_ugm3 = air_particulates.get('pm2_5')
+        pm10_ugm3 = air_particulates.get('pm10')
+        carbon_monoxide_ugm3 = air_particulates.get('carbon_monoxide')
+        nitrogen_dioxide_ugm3 = air_particulates.get('nitrogen_dioxide')
+        sulphur_dioxide_ugm3 = air_particulates.get('sulphur_dioxide')
+        ozone_ugm3 = air_particulates.get('ozone')
+
         # Combine all data into a single dictionary
-        combined_record = {
-            'date': datetime.now().strftime('%Y-%m-%d'),
-            'time': datetime.now().strftime('%H:%M:%S'),
-            'temp': temp_c,
-            'feels_like': feels_like_c,
-            'humidity': humidity_percent,
-            'pressure': pressure_hpa,
-            'wind_speed': float(f"{wind_speed_kph/3.6:.2f}"),                  # Convert kph to mps
-#            'wind_dir': data['current']['wind_direction_deg'],                # use this one for degrees
-            'wind_dir': convert_wind_to_compass(wind_direction_deg),           # use this one for compass 
-            'cloud_cover': cloud_cover_percent,
-            'precipitation': precipitation_mm,
-            'aqi': aqi_value
-        }
-        return combined_record
+        if RECORD_AIR_PARTICULATES:
+            combined_record = {
+                'date': datetime.now().strftime('%Y-%m-%d'),
+                'time': datetime.now().strftime('%H:%M:%S'),
+                'temp': temp_c,
+                'feels_like': feels_like_c,
+                'humidity': humidity_percent,
+                'pressure': pressure_hpa,
+                'wind_speed': float(f"{wind_speed_kph/3.6:.2f}"),                  # Convert kph to mps
+#               'wind_dir': data['current']['wind_direction_deg'],                 # use this one for degrees
+                'wind_dir': convert_wind_to_compass(wind_direction_deg),           # use this one for compass 
+                'cloud_cover': cloud_cover_percent,
+                'precipitation': precipitation_mm,
+                'aqi': aqi_value,
+                'pm2_5': pm2_5_ugm3,
+                'pm10_0': pm10_ugm3,
+                'co': carbon_monoxide_ugm3,
+                'no2': nitrogen_dioxide_ugm3,
+                'so2': sulphur_dioxide_ugm3,
+                'o3': ozone_ugm3
+            }
+        else:
+            combined_record = {
+                'date': datetime.now().strftime('%Y-%m-%d'),
+                'time': datetime.now().strftime('%H:%M:%S'),
+                'temp': temp_c,
+                'feels_like': feels_like_c,
+                'humidity': humidity_percent,
+                'pressure': pressure_hpa,
+                'wind_speed': float(f"{wind_speed_kph/3.6:.2f}"),                  # Convert kph to mps
+#               'wind_dir': data['current']['wind_direction_deg'],                 # use this one for degrees
+                'wind_dir': convert_wind_to_compass(wind_direction_deg),           # use this one for compass 
+                'cloud_cover': cloud_cover_percent,
+                'precipitation': precipitation_mm,
+                'aqi': aqi_value
+            }
+        return combined_record 
     else:
         return None
 
