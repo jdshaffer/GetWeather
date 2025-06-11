@@ -14,7 +14,7 @@ You can set your own latitude and longitude using Google Maps. Find your home, c
 
 You can change the output file by editing output filename near the bottom of the program.
 
-_Version 2 now calculates the AQI and adds it after the weather data in the XLSX file._
+_Version 2 now grabs air particulate data, calculates the AQI, and writes the particulate data and AQI to the XLSX file._
 
 ---
 
@@ -28,3 +28,9 @@ _Version 2 now calculates the AQI and adds it after the weather data in the XLSX
 *    wind_dir       = °
 *    cloud_cover    = %
 *    precipitation  = mm
+*    pm 2.5         = μg/m3 (micrograms per cubic meter)
+*    pm 10          = μg/m3
+*    co             = μg/m3
+*    no2            = μg/m3
+*    so2            = μg/m3
+*    o3 (ozone)     = μg/m3
